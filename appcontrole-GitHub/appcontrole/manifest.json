@@ -1,12 +1,12 @@
 {
-  "name": "Controle de Acesso Ferrovial",
-  "short_name": "Acesso Ferrovial",
+  "name": "Controle de Acesso",
+  "short_name": "Acesso ",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#003366",
   "theme_color": "#003366",
   "orientation": "portrait-primary",
-  "description": "Aplicativo para controle de entrada e saída de veículos e pessoas na Ferrovial.",
+  "description": "Aplicativo para controle de entrada e saída de veículos e pessoas.",
   "lang": "pt-BR",
   "icons": [
     {
