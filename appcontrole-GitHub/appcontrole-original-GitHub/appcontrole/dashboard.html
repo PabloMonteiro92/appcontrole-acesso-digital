@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - Controle de Acesso</title>
+
+  <!-- Fonte Inter e FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+
+  <!-- ÍCONES PARA PWA E FAVICON -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+
+  <!-- Meta Tags para PWA e tema -->
+  <meta name="theme-color" content="#003366" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Controle de acesso" />
+  <meta name="application-name" content="controle de Acesso" />
+  <meta name="msapplication-TileColor" content="#003366" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #ffffffee;
+      width: 100%;
+      max-width: 500px;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.9rem;
+      margin-bottom: 1.5rem;
+      color: #444;
+    }
+
+    input[type='text'] {
+      font-size: 1.05rem;
+      padding: 12px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: border 0.3s ease;
+    }
+
+    input[type='text']:focus {
+      border-color: #f4c20d;
+      outline: none;
+    }
+
+    button {
+      font-size: 1.1rem;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 14px;
+      width: 100%;
+      color: white;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-entrada {
+      background-color: #2ecc71;
+    }
+
+    .btn-entrada:hover {
+      background-color: #27ae60;
+    }
+
+    .btn-saida {
+      background-color: #f39c12;
+    }
+
+    .btn-saida:hover {
+      background-color: #e67e22;
+    }
+
+    .btn-pdf {
+      background-color: #f4c20d;
+      color: #000;
+    }
+
+    .btn-pdf:hover {
+      background-color: #e1b200;
+    }
+
+    .btn-logout {
+      background-color: #e74c3c;
+    }
+
+    .btn-logout:hover {
+      background-color: #c0392b;
+    }
+
+    #registros {
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      border-top: 1px solid #ddd;
+      padding-top: 15px;
+    }
+
+    #registros h2 {
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    #registros p {
+      background-color: #fffef3;
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #555;
+      border-left: 5px solid #f4c20d;
+      word-break: break-word;
+    }
+
+    #mensagem-sucesso {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #2ecc71;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 1rem;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registrado com sucesso:', registration.scope);
+          })
+          .catch((error) => {
+            console.log('Falha ao registrar Service Worker:', error);
+          });
+      });
+    }
+  </script>
+</head>
+
+<body>
+  <div id="mensagem-sucesso">Registro realizado com sucesso!</div>
+
+  <div class="container">
+    <h1>Controle de Entrada e Saída</h1>
+
+    <input type="text" id="nome" placeholder="Nome do trabalhador (obrigatório)" autocomplete="off" />
+    <input type="text" id="placa" placeholder="Placa do veículo" maxlength="10" autocomplete="off" />
+    <input type="text" id="observacao" placeholder="Observação (ex: 2 pessoas no carro)" autocomplete="off" />
+
+    <button class="btn-entrada" onclick="registrarEntrada()">
+      <i class="fas fa-sign-in-alt"></i> Registrar Entrada
+    </button>
+    <button class="btn-saida" onclick="registrarSaida()">
+      <i class="fas fa-sign-out-alt"></i> Registrar Saída
+    </button>
+    <button class="btn-pdf" onclick="gerarPDF()">
+      <i class="fas fa-file-pdf"></i> Gerar PDF
+    </button>
+    <button class="btn-logout" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Sair
+    </button>
+
+    <div id="registros">
+      <h2>Últimos registros:</h2>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      query,
+      orderBy,
+      limit,
+      onSnapshot,
+      getDocs,
+      serverTimestamp,
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZybx8OXg55VCIfuboZZ_pweGAJcQqAyg",
+      authDomain: "appcontrole-veiculos-pablo.firebaseapp.com",
+      projectId: "appcontrole-veiculos-pablo",
+      storageBucket: "appcontrole-veiculos-pablo.appspot.com",
+      messagingSenderId: "86456569829",
+      appId: "1:86456569829:web:17d525ae9cd348d78ee90c",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let nomesAutorizados = [];
+
+    async function carregarNomesAutorizados() {
+      try {
+        const response = await fetch('./autorizados.json');
+        const data = await response.json();
+        nomesAutorizados = data.map(item => item.nome.toLowerCase());
+        console.log("Nomes autorizados carregados:", nomesAutorizados.length);
+      } catch (e) {
+        alert("Erro ao carregar nomes autorizados: " + e.message);
+      }
+    }
+
+    function nomeEstaAutorizado(nome) {
+      return nomesAutorizados.includes(nome.toLowerCase());
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        carregarNomesAutorizados();
+      }
+    });
+
+    function mostrarMensagemSucesso() {
+      const msg = document.getElementById("mensagem-sucesso");
+      msg.style.display = "block";
+      setTimeout(() => {
+        msg.style.display = "none";
+      }, 3000);
+    }
+
+    window.registrarEntrada = async function () {
+      const nome = document.getElementById("nome").value.trim();
+      const placa = document.getElementById("placa").value.trim().toUpperCase();
+      const observacao = document.getElementById("observacao").value.trim();
+
+      if (!nome) {
+        alert("Por favor, digite o nome do trabalhador.");
+        return;
+      }
+
+      if (!nomeEstaAutorizado(nome)) {
+        if (!confirm(`O nome "${nome}" não está autorizado. Deseja registrar mesmo assim?`)) {
+          return;
+        }
+      }
+
+      try {
+        await addDoc(collection(db, "registros"), {
+          nome,
+          placa: placa || null,
+          observacao: observacao || "Nada consta",
+          tipo: "entrada",
+          timestamp: serverTimestamp(),
+          dataLocal: new Date(),
+          usuario: auth.currentUser.email,
+        });
+        mostrarMensagemSucesso();
+        limparCampos();
+      } catch (e) {
+        alert("Erro ao registrar entrada: " + e.message);
+      }
+    };
+
+    window.registrarSaida = async function () {
+      const nome = document.getElementById("nome").value.trim();
+      const placa = document.getElementById("placa").value.trim().toUpperCase();
+      const observacao = document.getElementById("observacao").value.trim();
+
+      if (!nome) {
+        alert("Por favor, digite o nome do trabalhador.");
+        return;
+      }
+
+      if (!nomeEstaAutorizado(nome)) {
+        if (!confirm(`O nome "${nome}" não está autorizado. Deseja registrar mesmo assim?`)) {
+          return;
+        }
+      }
+
+      try {
+        await addDoc(collection(db, "registros"), {
+          nome,
+          placa: placa || null,
+          observacao: observacao || "Nada consta",
+          tipo: "saída",
+          timestamp: serverTimestamp(),
+          dataLocal: new Date(),
+          usuario: auth.currentUser.email,
+        });
+        mostrarMensagemSucesso();
+        limparCampos();
+      } catch (e) {
+        alert("Erro ao registrar saída: " + e.message);
+      }
+    };
+
+    function limparCampos() {
+      document.getElementById("nome").value = "";
+      document.getElementById("placa").value = "";
+      document.getElementById("observacao").value = "";
+    }
+
+    window.logout = function () {
+      signOut(auth).then(() => {
+        window.location.href = "index.html";
+      });
+    };
+
+    const registrosDiv = document.getElementById("registros");
+
+    const q = query(collection(db, "registros"), orderBy("timestamp", "desc"), limit(10));
+    onSnapshot(
+      q,
+      (snapshot) => {
+        registrosDiv.innerHTML = "<h2>Últimos registros:</h2>";
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+
+          let dateStr = "Carregando data...";
+          if (data.timestamp && typeof data.timestamp.toDate === "function") {
+            dateStr = data.timestamp.toDate().toLocaleString();
+          } else if (data.dataLocal) {
+            dateStr = data.dataLocal.toDate ? data.dataLocal.toDate().toLocaleString() : new Date(data.dataLocal).toLocaleString();
+          }
+
+          const p = document.createElement("p");
+          p.textContent = `${dateStr} - ${data.tipo.toUpperCase()} - Placa: ${data.placa || "N/A"} - Nome: ${data.nome} - Obs: ${data.observacao || "Nada consta"} (Usuário: ${data.usuario})`;
+          registrosDiv.appendChild(p);
+        });
+      },
+      (error) => {
+        console.error("Erro ao receber registros:", error);
+      }
+    );
+
+    window.gerarPDF = async function () {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("Biblioteca jsPDF não carregada. Atualize a página e tente novamente.");
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("Relatório do Dia - Controle de Veículos", 14, 22);
+      doc.setFontSize(12);
+      doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 30);
+
+      try {
+        const snapshot = await getDocs(query(collection(db, "registros"), orderBy("timestamp", "desc")));
+        const registros = [];
+
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = hoje.getMonth();
+        const dia = hoje.getDate();
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+
+          let tsDate = null;
+          if (data.timestamp && typeof data.timestamp.toDate === "function") {
+            tsDate = data.timestamp.toDate();
+          } else if (data.dataLocal) {
+            tsDate = data.dataLocal.toDate ? data.dataLocal.toDate() : new Date(data.dataLocal);
+          }
+
+          if (!tsDate) return;
+
+          if (
+            tsDate.getFullYear() === ano &&
+            tsDate.getMonth() === mes &&
+            tsDate.getDate() === dia
+          ) {
+            registros.push({ ...data, dataFormatada: tsDate.toLocaleString() });
+          }
+        });
+
+        if (registros.length === 0) {
+          alert("Nenhum registro encontrado para hoje.");
+          return;
+        }
+
+        let y = 40;
+        doc.setFontSize(10);
+
+        registros.forEach((r) => {
+          const linha = `${r.dataFormatada} - ${r.tipo.toUpperCase()} - Placa: ${r.placa || "N/A"} - Nome: ${r.nome} - Obs: ${r.observacao || "Nada consta"}`;
+          const splitText = doc.splitTextToSize(linha, 180);
+          doc.text(splitText, 14, y);
+          y += splitText.length * 7;
+
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+        });
+
+        const anoStr = ano.toString();
+        const mesStr = String(mes + 1).padStart(2, '0');
+        const diaStr = String(dia).padStart(2, '0');
+        doc.save(`relatorio_controle_veiculos_${anoStr}-${mesStr}-${diaStr}.pdf`);
+      } catch (err) {
+        alert("Erro ao buscar registros para PDF: " + err.message);
+      }
+    };
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+
+</html>
