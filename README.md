@@ -54,7 +54,7 @@ Desenvolvido como um **PWA (Progressive Web App)**, o sistema pode ser usado dir
 
 ## 🌐 Acesse o Sistema
 
-👉 [appcontrole-acesso.netlify.app](https://appcontrole-acesso.netlify.app/)
+👉 [appcontrole-acesso.netlify.app](https://app-controle-acesso.netlify.app/)
 
 ---
 
